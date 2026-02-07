@@ -17,14 +17,16 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
       .binaryTarget(name: "mars",
-                    url: "https://github.com/jgh33/YFLog/releases/download/0.0.1/mars.xcframework.zip",
-                    checksum: "ba7e1bf5b5140d7e10bf574fc42c63c1a78d3c4b147daf5496c6d4f0eeb0814e"
+                    url: "https://github.com/jgh33/YFLog/releases/download/0.0.2/mars.xcframework.zip",
+                    checksum: "97be17aac8cb31583c824807f87b766676a5fb8c3e0c630054cb338e303abc1d"
       ),
+//      .binaryTarget(name: "mars",
+//                    path: "mars.xcframework"),
       .target(name: "Bridge",
               dependencies: ["mars"],
               path: "Sources/Bridge",
               publicHeadersPath: "include",
-              linkerSettings: [.linkedLibrary("z")],
+//              linkerSettings: [.linkedLibrary("z")],
       ),
       .target(name: "YFLog",
               dependencies: ["Bridge"],
