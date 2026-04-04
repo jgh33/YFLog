@@ -21,7 +21,6 @@ extension YFLog {
         #endif
         LogBridge.open(withLogDir: url.path, cacheDays: cacheDays, consoleOpen: consoleOpen, level: level)
         LoggingSystem.bootstrap { label in
-            print("label: \(label)")
             return YFLogHandler(label: label)
         }
     }
@@ -61,8 +60,7 @@ struct YFLogHandler: LogHandler {
     }
         
     public func log(event: LogEvent) {
-        let tag = event.metadata?["tag"] as? String ?? nil
-        LogBridge.log(with: bridgeLevel(event.level), tag: tag, message: event.message.description, file: event.file, function: event.function, line: Int32(event.line))
+        LogBridge.log(with: bridgeLevel(event.level), tag: label, message: event.message.description, file: event.file, function: event.function, line: Int32(event.line))
     }
     
     private func bridgeLevel(_ level: Logging.Logger.Level) -> LogLevel {
