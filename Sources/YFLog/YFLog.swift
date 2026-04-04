@@ -5,9 +5,7 @@ import Foundation
 import Bridge
 import Logging
 
-public enum YFLog {
-    public static let main = Logging.Logger(label: "main")
-}
+public enum YFLog {}
 
 extension YFLog {
 
@@ -23,7 +21,8 @@ extension YFLog {
         #endif
         LogBridge.open(withLogDir: url.path, cacheDays: cacheDays, consoleOpen: consoleOpen, level: level)
         LoggingSystem.bootstrap { label in
-            YFLogHandler(label: label)
+            print("label: \(label)")
+            return YFLogHandler(label: label)
         }
     }
   
