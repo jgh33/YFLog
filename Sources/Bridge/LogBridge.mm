@@ -44,7 +44,10 @@
 #import <mars/xlog/xloggerbase.h>
 
 static BOOL g_xlogOpened = NO;
-
+static const char *PUBLIC_KEY = "f7ee42ffbcb5d2d22f94dde297afe0cbc"
+                                "68212fd3ff9cef303b698b039ecd65128b"
+                                "850a2074c69954073c30cc50cece775c50"
+                                "9c2997199afce4d107d4625920c";
 @implementation LogBridge
 
 + (void)openWithLogDir:(NSString *)logDir
@@ -60,7 +63,11 @@ static BOOL g_xlogOpened = NO;
     config.logdir_ = [logDir UTF8String];
     config.nameprefix_ = "log";
     config.cache_days_ = (int)cacheDays;
+    config.pub_key_ = PUBLIC_KEY;
 
+    mars::xlog::appender_set_max_file_size(3 * 1024 * 1024); // 3MB per file
+    mars::xlog::appender_set_max_alive_duration(7 * 24 * 60 * 60); // Alive for 1 week
+    
     mars::xlog::appender_set_console_log(consoleOpen);
     mars::xlog::appender_open(config);
     xlogger_SetLevel((TLogLevel)level);
