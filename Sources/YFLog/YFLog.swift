@@ -5,11 +5,13 @@ import Foundation
 import Bridge
 import Logging
 
-public enum YFLog {}
+public enum YFLog {
+    static let main = Logging.Logger(label: "main")
+}
 
 extension YFLog {
 
-    static func bootstrap(fileURL: URL? = nil, cacheDays: Int = 7) {
+    public static func bootstrap(fileURL: URL? = nil, cacheDays: Int = 7) {
         let url = resolvedLogDirectory(fileURL)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         #if DEBUG
