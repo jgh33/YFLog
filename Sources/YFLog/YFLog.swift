@@ -6,7 +6,7 @@ import Bridge
 import Logging
 
 public enum YFLog {
-    static let main = Logging.Logger(label: "main")
+    public static let main = Logging.Logger(label: "main")
 }
 
 extension YFLog {
