@@ -14,6 +14,7 @@ typedef NS_ENUM(NSInteger, LogLevel) {
     LogLevelWarn,
     LogLevelError,
     LogLevelFatal,
+    LogLevelNone
 };
 
 NS_ASSUME_NONNULL_BEGIN

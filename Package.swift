@@ -13,6 +13,9 @@ let package = Package(
             targets: ["YFLog"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-log", from: "1.11.0")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
@@ -29,7 +32,10 @@ let package = Package(
 //              linkerSettings: [.linkedLibrary("z")],
       ),
       .target(name: "YFLog",
-              dependencies: ["Bridge"],
+              dependencies: [
+                "Bridge",
+                 .product(name: "Logging", package: "swift-log")
+              ],
       ),
       .testTarget(name: "YFLogTests",
                   dependencies: ["YFLog"]

@@ -3,92 +3,37 @@
 
 import Foundation
 import Bridge
+import Logging
 
-public enum YFLog {
-  public enum Level: Int {
-    case verbose = 0
-    case debug
-    case info
-    case warning
-    case error
-    case fatal
-  }
+public enum YFLog {}
+
+extension YFLog {
+
+    static func bootstrap(fileURL: URL? = nil, cacheDays: Int = 7) {
+        let url = resolvedLogDirectory(fileURL)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        #if DEBUG
+        let consoleOpen = true
+        let level = LogLevel.debug
+        #else
+        let consoleOpen = false
+        let level = LogLevel.info
+        #endif
+        LogBridge.open(withLogDir: url.path, cacheDays: cacheDays, consoleOpen: consoleOpen, level: level)
+        LoggingSystem.bootstrap { label in
+            YFLogHandler(label: label)
+        }
+    }
   
-  @MainActor
-  private static var isStarted = false
-  private static var currentLevel: Level {
-#if DEBUG
-    return .debug
-#else
-    return .info
-#endif
-  }
   
-  @discardableResult @MainActor
-  public static func start(logDirectory: URL? = nil, cacheDays: Int = 7, consoleOpen: Bool = true, level: Level? = nil) -> URL {
-    guard !isStarted else { return resolvedLogDirectory(logDirectory) }
+    public static func flush() {
+        LogBridge.flush()
+    }
     
-    let logDir = resolvedLogDirectory(logDirectory)
-    try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
-    
-    let openLevel = bridgeLevel(level ?? currentLevel)
-    LogBridge.open(withLogDir: logDir.path, cacheDays: cacheDays, consoleOpen: consoleOpen, level: openLevel)
-    isStarted = true
-    return logDir
-  }
-  
-  public static func flush() {
-    LogBridge.flush()
-  }
-  
-  @MainActor
-  public static func stop() {
-    LogBridge.close()
-    isStarted = false
-  }
-  
-  public static func debug(tag: String? = nil, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-#if DEBUG
-    write(level: .debug, tag: tag, msg: msg, file: file, function: function, line: line)
-#endif
-  }
-  
-  public static func info(tag: String? = nil, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-    write(level: .info, tag: tag, msg: msg, file: file, function: function, line: line)
-  }
-  
-  public static func warning(tag: String? = nil, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-    write(level: .warning, tag: tag, msg: msg, file: file, function: function, line: line)
-  }
-  
-  public static func error(tag: String? = nil, msg: String, file: String = #file, function: String = #function, line: Int = #line) {
-    write(level: .error, tag: tag, msg: msg, file: file, function: function, line: line)
-  }
-  
-  
-  //简单log
-  public static func justDebug(tag: String? = nil, msg: String) {
-#if DEBUG
-    write(level: .debug, tag: tag, msg: msg, file: "", function: "", line: 0)
-#endif
-  }
-  
-  public static func justInfo(tag: String? = nil, msg: String) {
-    write(level: .info, tag: tag, msg: msg, file: "", function: "", line: 0)
-  }
-  
-  public static func justWarning(tag: String? = nil, msg: String) {
-    write(level: .warning, tag: tag, msg: msg, file: "", function: "", line: 0)
-  }
-  
-  public static func justError(tag: String? = nil, msg: String) {
-    write(level: .error, tag: tag, msg: msg, file: "", function: "", line: 0)
-  }
-  
-  private static func write(level: Level, tag: String?, msg: String, file: String, function: String, line: Int) {
-    let filename = file.isEmpty ? "" : URL(fileURLWithPath: file).lastPathComponent
-    LogBridge.log(with: bridgeLevel(level), tag: tag, message: msg, file: filename, function: function, line: Int32(line))
-  }
+    @MainActor
+    public static func stop() {
+        LogBridge.close()
+    }
   
   private static func resolvedLogDirectory(_ directory: URL?) -> URL {
     if let directory {
@@ -98,21 +43,36 @@ public enum YFLog {
     return caches.appendingPathComponent("Logs", isDirectory: true)
   }
   
-  private static func bridgeLevel(_ level: Level) -> LogLevel {
-    switch level {
-    case .verbose:
-      return .verbose
-    case .debug:
-      return .debug
-    case .info:
-      return .info
-    case .warning:
-      return .warn
-    case .error:
-      return .error
-    case .fatal:
-      return .fatal
-    }
-  }
 }
 
+struct YFLogHandler: LogHandler {
+    var metadata: Logger.Metadata = [:]
+    var logLevel: Logger.Level = .debug
+    private let label: String
+    
+    init(label: String) {
+        self.label = label
+    }
+    
+    subscript(metadataKey key: String) -> Logger.Metadata.Value? {
+        get { metadata[key] }
+        set { metadata[key] = newValue }
+    }
+        
+    public func log(event: LogEvent) {
+        let tag = event.metadata?["tag"] as? String ?? nil
+        LogBridge.log(with: bridgeLevel(event.level), tag: tag, message: event.message.description, file: event.file, function: event.function, line: Int32(event.line))
+    }
+    
+    private func bridgeLevel(_ level: Logging.Logger.Level) -> LogLevel {
+        switch level {
+        case .trace:      return .debug
+        case .debug:      return .debug
+        case .info:       return .info
+        case .notice:     return .info
+        case .warning:    return .warn
+        case .error:      return .error
+        case .critical:   return .verbose
+        }
+    }
+}
