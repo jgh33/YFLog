@@ -60,10 +60,19 @@ struct YFLogHandler: LogHandler {
     }
         
     public func log(event: LogEvent) {
-        if let enable = self.metadata["func"], enable == "disable" {
-            LogBridge.log(with: bridgeLevel(event.level), tag: label, message: event.message.description, file: "", function: "", line: 0)
+        let msg = event.message.description
+        var merged = self.metadata
+        merged.merge(event.metadata ?? [:]) { _, new in new }
+        var message: String
+        if merged.isEmpty {
+            message = msg
         } else {
-            LogBridge.log(with: bridgeLevel(event.level), tag: label, message: event.message.description, file: event.file, function: event.function, line: Int32(event.line))
+            message = msg + " M: " + merged.description
+        }
+        if let enable = self.metadata["func"], enable == "disable" {
+            LogBridge.log(with: bridgeLevel(event.level), tag: label, message: message, file: "", function: "", line: 0)
+        } else {
+            LogBridge.log(with: bridgeLevel(event.level), tag: label, message: message, file: event.file, function: event.function, line: Int32(event.line))
         }
     }
     
