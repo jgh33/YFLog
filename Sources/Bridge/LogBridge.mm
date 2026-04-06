@@ -44,10 +44,7 @@
 #import <mars/xlog/xloggerbase.h>
 
 static BOOL g_xlogOpened = NO;
-static const char *PUBLIC_KEY = "f7ee42ffbcb5d2d22f94dde297afe0cbc"
-                                "68212fd3ff9cef303b698b039ecd65128b"
-                                "850a2074c69954073c30cc50cece775c50"
-                                "9c2997199afce4d107d4625920c";
+static const char *PUBLIC_KEY = "0cb4835efbb8d8632ea8a55fcf871147b51047cef47829d9e78b41435d2b575d";
 @implementation LogBridge
 
 + (void)openWithLogDir:(NSString *)logDir
